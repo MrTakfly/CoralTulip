@@ -269,6 +269,94 @@
     location.reload();
   };
 
+  // Convert a .json backup archive (felucca-backup v1) into the 1 MiB NOR flash image (storage.c layout)
+  const crc32 = (bytes) => {
+    let c = 0xffffffff;
+    for (let i = 0; i < bytes.length; i++) {
+      c ^= bytes[i];
+      for (let k = 0; k < 8; k++) c = (c >>> 1) ^ (c & 1 ? 0xedb88320 : 0);
+    }
+    return (~c) >>> 0;
+  };
+  const crbObj = (id) => {
+    if (id === 30) return 4;
+    if (id === 31) return 8;
+    if (id >= 60 && id <= 67) return 19 + id - 60;
+    if (id === 59) return 18;
+    if (id >= 56 && id <= 58) return 15 + id - 56;
+    if (id >= 50 && id <= 55) return 9 + id - 50;
+    if (id === 8) return 7;
+    if (id === 9) return 1;
+    if (id === 10 || id === 11) return 2 + id - 10;
+    if (id === 6 || id === 7) return 5 + id - 6;
+    return -1;
+  };
+  const stSector = (obj, copy) => {
+    if (obj === 0) return 0xfc000 + copy * 0x1000;
+    if (obj === 7) return copy ? 0xfe000 : 0x9f000;
+    if (obj === 8) return 0xb6000 + copy * 0x1000;
+    if (obj >= 9 && obj <= 14) return 0xb8000 + (obj - 9) * 0x2000 + copy * 0x1000;
+    if (obj >= 15 && obj <= 17) return 0xc4000 + (obj - 15) * 0x2000 + copy * 0x1000;
+    if (obj === 18) return 0xca000 + copy * 0x1000;
+    if (obj >= 19 && obj <= 26) return 0xcc000 + (obj - 19) * 0x2000 + copy * 0x1000;
+    if (obj >= 5) return 0xdc000 + (obj - 5) * 0x2000 + copy * 0x1000;
+    return 0x97000 + (obj - 1) * 0x2000 + copy * 0x1000;
+  };
+  const applyBackupJson = async (text, label) => {
+    const arc = typeof text === "string" ? JSON.parse(text) : text;
+    if (!arc || arc.format !== "felucca-backup" || !Array.isArray(arc.objects)) {
+      throw new Error("Not a valid FM-1 .json backup file");
+    }
+    const flash = new Uint8Array(0x100000);
+    flash.fill(0xff);
+    for (const o of arc.objects) {
+      const obj = crbObj(o.id);
+      if (obj < 0 || !o.size || !o.data) continue;
+      const raw = Uint8Array.from(atob(o.data), (c) => c.charCodeAt(0));
+      if (raw.length !== o.size || crc32(raw) !== (o.crc >>> 0)) {
+        throw new Error(`Checksum mismatch in object ${o.id}`);
+      }
+      const base = stSector(obj, 0);
+      flash.set(raw, base + 256);
+      const hdr = new Uint8Array(32);
+      const dv = new DataView(hdr.buffer);
+      dv.setUint32(0, 0x554c4546, true); // "FELU"
+      dv.setUint16(4, obj, true);
+      dv.setUint16(6, 0, true);
+      dv.setUint32(8, 1, true);          // seq = 1
+      dv.setUint32(12, raw.length, true);
+      dv.setUint32(16, o.crc >>> 0, true);
+      dv.setUint32(20, 0xffffffff, true);
+      dv.setUint32(24, 0xffffffff, true);
+      dv.setUint32(28, crc32(hdr.subarray(0, 28)), true);
+      flash.set(hdr, base);
+    }
+    await flashSave(flash.buffer);
+    status(`Loaded ${label}. Reloading emulator…`);
+    location.reload();
+  };
+  if ($("loadKids")) {
+    $("loadKids").onclick = async () => {
+      try {
+        status("Loading MGMT - Kids preset…");
+        const r = await fetch("mgmt-kids.json", { cache: "no-cache" });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        await applyBackupJson(await r.text(), "MGMT - Kids");
+      } catch (e) { status("Could not load MGMT - Kids: " + e.message); }
+    };
+  }
+  if ($("loadBackup") && $("backupFile")) {
+    $("loadBackup").onclick = () => $("backupFile").click();
+    $("backupFile").onchange = async () => {
+      const f = $("backupFile").files && $("backupFile").files[0];
+      if (!f) return;
+      try {
+        status("Loading " + f.name + "…");
+        await applyBackupJson(await f.text(), f.name);
+      } catch (e) { status("Could not load backup: " + e.message); }
+    };
+  }
+
   // ------------------------------------------------------------------------------------- the wasm ---
   const getBytes = (url) => location.protocol === "file:"
     ? new Promise((ok, no) => {   // (fetch cannot read file://; XHR can with --allow-file-access-from-files)
