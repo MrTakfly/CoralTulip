@@ -63,7 +63,8 @@ static void draw_topbar(const char *left, const char *mid)
     if (mid)
         fb_text_r(&CF_FONT_UI, 206, Y_TOP + 1, mid, FL_INK3, 1);
     draw_battery(216, Y_TOP + 3);
-    fb_hline(0, Y_TOP + 15, FB_W, FL_BG1);
+    fb_hline(0, Y_TOP + 14, FB_W, C_SEC(3));
+    fb_hline(0, Y_TOP + 15, FB_W, C_ACC(2));
 }
 
 /* ---------------------------------------------------------------- panels --- */
@@ -183,6 +184,14 @@ static void draw_keycap(int key)
     default: fill = cf_panel(1); ink = FL_INK2; ink2 = FL_INK3; break;
     }
     fb_rbox(x, y, w, h, 1, fill);
+    if (c.style == KC_ON)
+        fb_hline(x + 1, y, w - 2, C_ACC(0));
+    else if (c.style == KC_SOUNDING)
+        fb_hline(x + 1, y, w - 2, C_ACC(0));
+    else if (c.style == KC_BTN)
+        fb_hline(x + 1, y, w - 2, C_ACC(2));
+    else if (c.style == KC_SCALE)
+        fb_hline(x + 1, y, w - 2, C_SEC(2));
     if (c.icon) {
         draw_drum_icon(x + w / 2, y + h / 2, c.icon - 1u, ink);
         return;
@@ -227,6 +236,7 @@ static void draw_knobs(void)
         ui_knob_info(k, &o);
         lit = (int32_t)(cu.now - cu.knob_ms[k]) < 900 && cu.knob_ms[k];
         fb_rbox(x + 2, Y_KNOBS, 56, 37, 2, cf_panel(lit ? 2 : 1));
+        fb_hline(x + 4, Y_KNOBS, 52, lit ? C_ACC(0) : C_ACC(3));
         if (!o.name[0])
             continue;
         fb_text_c(&CF_FONT_UI, x + 30, Y_KNOBS + 2, o.name, o.dis ? FL_INK3 : (lit ? C_ACC(0) : FL_INK2), 1);
@@ -254,9 +264,13 @@ static void draw_knobs(void)
             }
         }
         if (o.bar >= 0) {
-            int bw = 42 * o.bar / 255;
-            fb_rect(x + 9, Y_KNOBS + 31, 42, 2, FL_BG3);
-            fb_rect(x + 9, Y_KNOBS + 31, bw, 2, o.dis ? FL_INK3 : C_ACC(1));
+            int bw = 42 * o.bar / 255, s;
+            fb_rect(x + 9, Y_KNOBS + 31, 42, 3, FL_BG);
+            for (s = 0; s < 42; s += 3) {
+                int seg_on = s < bw;
+                uint8_t col = !seg_on ? FL_BG3 : o.dis ? FL_INK3 : (s + 3 >= bw ? C_ACC(0) : C_ACC(1));
+                fb_rect(x + 9 + s, Y_KNOBS + 31, 2, 3, col);
+            }
         }
     }
 }
@@ -363,9 +377,10 @@ static void draw_top_hints(int left)            /* left: where the screen's name
     }
 }
 
-/* a box for popups: a dark panel with an accent edge */
+/* a box for popups: a dark synthwave panel with a dual-neon edge */
 static void draw_panel(int x, int y, int w, int h)
 {
     fb_rbox(x, y, w, h, 2, FL_BG1);
-    fb_rframe(x, y, w, h, C_ACC(2));
+    fb_rframe(x, y, w, h, C_ACC(1));
+    fb_hline(x + 2, y + 1, w - 4, C_SEC(1));
 }

@@ -21,11 +21,18 @@ static void cf_splash_frame(uint32_t t)
         ch[0] = NAME[i];
         ch[1] = 0;
         if (age >= 0)
-            fb_text(&CF_FONT_UI, x, 180, ch, age > 3 ? FL_INK : age > 1 ? C_ACC(0) : C_ACC(2), 2);
+            fb_text(&CF_FONT_UI, x, 176, ch, age > 3 ? FL_INK : age > 1 ? C_ACC(0) : C_SEC(0), 2);
         x += fb_text_w(&CF_FONT_UI, ch, 2);
     }
+    if (t > 650u) {
+        int uw = (int)((t - 650u) * 160u / 750u);
+        if (uw > 160)
+            uw = 160;
+        fb_hline(120 - uw / 2, 204, uw, C_ACC(0));
+        fb_hline(120 - uw * 3 / 8, 206, uw * 3 / 4, C_SEC(1));
+    }
     if (t > 900u)
-        fb_text_c(&CF_FONT_UI, 120, 212, FELUCCA_VERSION, FL_INK3, 1);
+        fb_text_c(&CF_FONT_UI, 120, 214, FELUCCA_VERSION, C_SEC(0), 1);
 }
 
 /* main.c's splash (IRQs off): the first picture only, the scene before the seed sprouts; the UI's first frames grow it
@@ -45,7 +52,7 @@ static void cf_splash(void)
         return;
     }
     flora_init(&flo, 0x5EED1u, FLW / 2, FLH + 1);
-    flo.bloom = FL_R_ROSE + 1u;                  /* the intro's flower is pink, whatever the key */
+    flo.bloom = FL_R_ORCHID + 1u;                /* the intro's synthwave horizon is hot magenta */
     flora_set_key(&flo, cs.chord.tonic);
     flo.backdrop = cs.backdrop;
     flora_set_species(&flo, cs.chord.algo >= CF_ALG_SIDE ? FL_SP_CORAL : FL_SP_PLANT);

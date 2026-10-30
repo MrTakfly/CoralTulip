@@ -1,7 +1,6 @@
-/* CoralFlower palette: ten four-step ramps after the "TLP" 31-colour pixel palette, on black. (The background was a
- * warm near-black, 0x110A02: in RGB565 it is (16, 8, 0), no blue at all, and the FM-1's panel showed it olive.)
+/* CoralTulip Synthwave palette: ten four-step neon synthwave ramps on deep midnight violet.
  *
- * Every pixel the flora engine and the UI draw is an index into this table; the platform turns the
+ * Every pixel the flora visualizer and the UI draw is an index into this table; the platform turns the
  * indices into RGB565 once per frame (fl_pal_rgb). A ramp runs from light (step 0) to dark (step 3).
  */
 #ifndef FLORA_PAL_H
@@ -22,16 +21,16 @@ enum {
 };
 
 enum {
-    FL_R_FIRE = 0,   /* yellow -> orange -> red -> maroon */
-    FL_R_PEACH,      /* peach -> terracotta -> brown */
-    FL_R_COPPER,     /* peach -> copper -> rust -> brown */
-    FL_R_LIME,       /* lime -> leaf green -> forest -> deep */
-    FL_R_JADE,       /* lime -> jade -> teal -> deep teal */
-    FL_R_SEA,        /* aqua -> sky -> cobalt -> indigo */
-    FL_R_ORCHID,     /* blush -> pink -> magenta -> plum */
-    FL_R_ROSE,       /* blush -> rose -> red -> wine */
-    FL_R_SAND,       /* bone -> sand -> umber -> dark umber */
-    FL_R_SAGE,       /* mist -> sage -> slate -> night */
+    FL_R_FIRE = 0,   /* solar yellow -> outrun orange -> hot red -> deep crimson */
+    FL_R_PEACH,      /* sunset gold -> neon coral -> magenta-red -> dark wine */
+    FL_R_COPPER,     /* chrome gold -> amber -> burnt neon -> deep violet */
+    FL_R_LIME,       /* cyber lime -> arcade green -> emerald -> deep teal */
+    FL_R_JADE,       /* electric mint -> neon turquoise -> outrun teal -> abyss */
+    FL_R_SEA,        /* laser cyan -> electric blue -> arcade cobalt -> midnight indigo */
+    FL_R_ORCHID,     /* neon pink -> hot magenta -> electric purple -> deep violet */
+    FL_R_ROSE,       /* laser rose -> hot pink -> neon crimson -> dark plum */
+    FL_R_SAND,       /* chrome white -> silver lavender -> steel violet -> gunmetal */
+    FL_R_SAGE,       /* holo ice -> cyber sky -> slate blue -> dark navy */
     FL_NRAMPS
 };
 
@@ -42,25 +41,25 @@ enum {
 
 /* 0xRRGGBB */
 static const uint32_t fl_pal_rgb[FL_PAL_SIZE] = {
-    0x000000, 0x1A120B, 0x271B12, 0x3A2B22, 0xF1ECE0, 0xA89A88, 0x5E5048, 0x000000,
-    0xF9C62A, 0xF1750D, 0xB1301B, 0x6C0E26,   /* FIRE */
-    0xF6BA7A, 0xDE6E50, 0x8D3E32, 0x46201E,   /* PEACH */
-    0xF6BA7A, 0xCA7535, 0x893E36, 0x46201E,   /* COPPER */
-    0xD6E34C, 0x5BB42F, 0x186C44, 0x0E393C,   /* LIME */
-    0xD3E34D, 0x22B572, 0x1F6C6B, 0x0D383F,   /* JADE */
-    0x48E6D9, 0x0D97D5, 0x1B4D9F, 0x231F6F,   /* SEA */
-    0xFAB2A5, 0xE6658B, 0x962179, 0x47115E,   /* ORCHID */
-    0xF7B1AC, 0xE86879, 0xB12D24, 0x680C26,   /* ROSE */
-    0xEEEEE3, 0xAEA292, 0x6D5E59, 0x3D2F2F,   /* SAND */
-    0xE3F0EC, 0x82ABA2, 0x466A74, 0x2A354A,   /* SAGE */
+    0x070312, 0x150B2A, 0x251444, 0x3D226A, 0xF6F2FF, 0xBCA8E8, 0x6E58A0, 0x000000,
+    0xFFF05A, 0xFF7B1A, 0xD91E48, 0x6E0A2E,   /* FIRE */
+    0xFFCA7A, 0xFF5E6C, 0xB81D58, 0x520C32,   /* PEACH */
+    0xFFE07D, 0xF08C28, 0x9E383C, 0x4A1828,   /* COPPER */
+    0xD8FF4E, 0x36E86B, 0x128858, 0x0A3D38,   /* LIME */
+    0x72FFE0, 0x14D4B4, 0x0E7488, 0x09364A,   /* JADE */
+    0x5CEEFF, 0x12A8FF, 0x1E4ED8, 0x161B6E,   /* SEA */
+    0xFF88F8, 0xF828B8, 0x9B18A8, 0x460C62,   /* ORCHID */
+    0xFF94C8, 0xFF2A78, 0xB81258, 0x5A0836,   /* ROSE */
+    0xF6F4FF, 0xB2B0D0, 0x6A6690, 0x363252,   /* SAND */
+    0xE0F8FF, 0x7AB4D8, 0x3E648E, 0x1E2E4E,   /* SAGE */
 };
 
-/* the backdrop's dark tints, dark to light: dusk behind the plant, deep water behind the coral.
+/* the backdrop's dark tints, dark to light: outrun sunset behind Top mode, cyber grid behind Side mode.
  * Palette entries 56..63 (48..55 are the UI theme's accent and secondary ramps). */
 enum { FL_L0 = 56, FL_L1, FL_L2, FL_L3, FL_S0, FL_S1, FL_S2, FL_S3 };
 static const uint32_t fl_back_rgb[8] = {
-    0x1A1026, 0x2C1838, 0x4E2440, 0x84402E,   /* dusk: violet -> plum -> wine -> the glow */
-    0x071420, 0x0B2232, 0x0F3346, 0x15495C,   /* water: deep -> the light from the surface */
+    0x130826, 0x261046, 0x4C186E, 0x94227A,   /* outrun: midnight purple -> royal violet -> neon plum -> hot magenta */
+    0x081028, 0x102048, 0x183872, 0x2062AC,   /* cyber: abyssal navy -> deep cobalt -> electric blue -> cyan glow */
 };
 
 #endif

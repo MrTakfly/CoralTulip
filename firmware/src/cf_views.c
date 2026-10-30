@@ -177,32 +177,31 @@ static void draw_piano(int x, int y, int lo, int octs, int wk, int h, uint8_t (*
  * framed. Each knob's choices in a row, the one taken marked */
 static void cv_backdrop_thumb(int x, int y, int w, int h, uint32_t bd, int on)
 {
-    int coral = flo.species == FL_SP_CORAL, i;
+    int coral = flo.species == FL_SP_CORAL, i, hz = y + h * 3 / 5;
     uint8_t base = coral ? FL_S0 : FL_L0;
     fb_rect(x, y, w, h, FL_BG);
     if (bd != FL_BD_NONE)
-        for (i = 0; i < 4; i++)                  /* the sky / the water, darker up */
-            fb_rect(x, y + h * i / 4, w, h / 4 + 1, (uint8_t)(base + (coral ? 3 - i : i)));
+        for (i = 0; i < 4; i++)                  /* synthwave sky gradient */
+            fb_rect(x, y + (hz - y) * i / 4, w, (hz - y) / 4 + 1, (uint8_t)(base + i));
+    /* miniature Outrun sun & perspective grid */
+    fb_rect(x + w / 2 - 4, hz - 7, 8, 3, FL_C(FL_R_FIRE, 0));
+    fb_rect(x + w / 2 - 5, hz - 3, 10, 2, FL_C(FL_R_ORCHID, 1));
+    fb_hline(x, hz, w, C_ACC(1));
+    for (i = 1; i <= 5; i++)
+        fb_line(x + w / 2 + (i - 3) * 4, hz, x + w / 2 + (i - 3) * 10, y + h - 1, FL_BG3);
     if (bd == FL_BD_SCENE) {
-        if (!coral) {
-            fb_rect(x + w - 11, y + 4, 4, 4, FL_INK2);         /* the moon */
-            fb_rect(x + w - 10, y + 4, 3, 3, (uint8_t)(base + 0));
-            fb_pset(x + 6, y + 5, (cu.now / 600u) & 1u ? FL_INK : FL_INK3);
-            fb_pset(x + 15, y + 3, FL_INK3);
-            for (i = 0; i < w; i++)                            /* far hills */
-                fb_rect(x + i, y + h - 5 - ((i * 7 / w) & 1) - (i % 9 < 4), 1, 6, FL_BG1);
-        } else {
-            for (i = 0; i < 3; i++) {                          /* soft lights drifting */
-                int bx = x + 6 + (int)((i * 13 + cu.now / 90u) % (uint32_t)(w - 10)), by = y + 5 + i * 5;
-                fb_rect(bx, by, 3, 3, (uint8_t)(base + 3));
-            }
-        }
-    } else if (bd == FL_BD_RIPPLES) {                          /* a ring going out */
-        int r = 3 + (int)(cu.now / 70u % 14u), cx = x + w / 2, cy = y + h - 3, a;
+        fb_pset(x + 6, y + 4, (cu.now / 600u) & 1u ? FL_INK : FL_INK3);
+        fb_pset(x + w - 8, y + 5, FL_INK2);
+        fb_line(x + 6, hz, x + 13, hz - 6, C_ACC(0));
+        fb_line(x + 13, hz - 6, x + 20, hz, C_ACC(1));
+        fb_line(x + w - 20, hz, x + w - 13, hz - 7, C_SEC(0));
+        fb_line(x + w - 13, hz - 7, x + w - 6, hz, C_SEC(1));
+    } else if (bd == FL_BD_RIPPLES) {
+        int r = 5 + (int)(cu.now / 70u % 12u), cx = x + w / 2, cy = hz - 3, a;
         for (a = 0; a < 512; a += 24) {
             int px = cx + (int)((r * fcos_ui(a)) >> 14) * 3 / 2, py = cy - (int)((r * fsin_ui(a)) >> 14);
-            if (px > x && px < x + w - 1 && py > y)
-                fb_pset(px, py, FL_INK3);
+            if (px > x && px < x + w - 1 && py > y && py < hz)
+                fb_pset(px, py, C_ACC(0));
         }
     }
     if (on) {

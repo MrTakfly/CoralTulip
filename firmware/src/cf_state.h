@@ -28,10 +28,10 @@ static const char *const SCR_NAME[SCR_N] = {"HOME", "CHORD", "ENVELOPE", "BASS",
 typedef struct { const char *name; uint8_t ramp; uint32_t light; } cf_theme_t;   /* light: another lightest step
                                                                                      * (0xRRGGBB), 0 = the ramp's */
 static const cf_theme_t CF_THEMES[] = {
-    {"Coral", FL_R_ROSE, 0}, {"Amber", FL_R_FIRE, 0}, {"Peach", FL_R_PEACH, 0},
-    {"Lime", FL_R_LIME, 0xB0E34Cu},            /* (the lime ramp's top turned greener: the UI's own) */
-    {"Jade", FL_R_JADE, 0x5BB42Fu},            /* (the jade ramp starts yellow-green: the leaf green instead) */
-    {"Sky", FL_R_SEA, 0}, {"Orchid", FL_R_ORCHID, 0}, {"Bone", FL_R_SAND, 0}, {"Mist", FL_R_SAGE, 0},
+    {"Laser", FL_R_ROSE, 0}, {"Sunset", FL_R_FIRE, 0}, {"Solar", FL_R_PEACH, 0},
+    {"Arcade", FL_R_LIME, 0xD8FF4Eu},
+    {"Mint", FL_R_JADE, 0x72FFE0u},
+    {"Cyan", FL_R_SEA, 0}, {"Outrun", FL_R_ORCHID, 0}, {"Chrome", FL_R_SAND, 0}, {"Holo", FL_R_SAGE, 0},
 };
 #define CF_NTHEMES ((int)(sizeof CF_THEMES / sizeof CF_THEMES[0]))
 
@@ -108,7 +108,7 @@ static void cs_defaults(cf_set_t *s)
     s->metro_level = 0;
     s->beats = 4;
     s->bpm = 100;
-    s->accent = 3;                   /* Lime */
+    s->accent = 6;                   /* Outrun (Neon Magenta + Laser Cyan) */
     s->env_link = 1;
     s->midi_out = 1;
     s->ch_chord = 0;
@@ -240,13 +240,17 @@ static uint32_t cf_panel_fix(uint32_t c, int colour)
 
 static void cf_palette_build(void)
 {
-    uint32_t i;
+    static const uint8_t SEC_RAMP[CF_NTHEMES] = {
+        FL_R_SEA, FL_R_ORCHID, FL_R_SEA, FL_R_ORCHID, FL_R_ORCHID, FL_R_ORCHID, FL_R_SEA, FL_R_ORCHID, FL_R_ROSE
+    };
+    uint32_t i, acc = cs.accent % CF_NTHEMES;
+    const cf_theme_t *th = &CF_THEMES[acc];
+    uint8_t sr = SEC_RAMP[acc];
     for (i = 0; i < FL_PAL_SIZE; i++)
         cf_pal[i] = fl_pal_rgb[i];
     for (i = 0; i < 4u; i++) {
-        const cf_theme_t *th = &CF_THEMES[cs.accent % CF_NTHEMES];
         cf_pal[48 + i] = !i && th->light ? th->light : fl_pal_rgb[FL_C(th->ramp, i)];
-        cf_pal[52 + i] = cf_pal[48 + i];
+        cf_pal[52 + i] = fl_pal_rgb[FL_C(sr, i)];
     }
     for (i = 0; i < 8u; i++)
         cf_pal[56 + i] = fl_back_rgb[i];
