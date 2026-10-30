@@ -80,7 +80,7 @@ jobs:
           set -euo pipefail
           mkdir -p build/site/firmware
           if [ -f web/releases.json ]; then cp web/releases.json build/site/firmware/; else echo '{"releases": []}' > build/site/firmware/releases.json; fi
-          python3 -c 'import json; [print(r["version"], r["tag"], r["sha256"], r.get("pkg", f"coraltulip-{r[\"version\"]}.fwsc")) for r in json.load(open("build/site/firmware/releases.json"))["releases"]]' > build/list.txt
+          python3 -c 'import json; [print(r["version"], r["tag"], r["sha256"], r.get("pkg") or ("coraltulip-" + r["version"] + ".fwsc")) for r in json.load(open("build/site/firmware/releases.json"))["releases"]]' > build/list.txt
           : > build/site/firmware/SHA256SUMS
           while read -r v tag sha pkg; do
             gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$pkg" --dir build/site/firmware --clobber
