@@ -1,6 +1,19 @@
 {
  "releases": [
   {
+   "version": "0.6.2",
+   "tag": "v0.6.2",
+   "sha256": "f736a1601113d70065ab7bb51915edd466e82a6bdf5a2d8f8a54c07e76859b4d",
+   "pkg": "coraltulip-0.6.2.fwsc",
+   "date": "2026-10-30",
+   "title": "Octave modifier chord keys and Backup Studio",
+   "notes": [
+    "Assign O1 (+1), o1 (-1), o2 (-2) and O2 (+2) octave modifiers to any chord key in SEL.",
+    "Standalone USB-MIDI Backup & Restore Studio (flower_backup_app.py) with bundled MGMT - Kids preset.",
+    "Rebranded to CoralTulip 0.6.2 with native Windows and WSL USB-MIDI support."
+   ]
+  },
+  {
    "version": "0.6.1",
    "tag": "v0.6.1",
    "sha256": "de41c96a0979927d921a99064aca1b43cb871a5ab10736342abf22cab2845a22",
