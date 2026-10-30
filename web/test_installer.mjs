@@ -93,9 +93,9 @@ const GUARD_CASES = [                            // ChoralRoot's tests/install_t
 const MOD_OPEN = '<script type="module">';
 const modSrc = html.slice(html.indexOf(MOD_OPEN) + MOD_OPEN.length, html.indexOf("</script>", html.indexOf(MOD_OPEN)));
 const links = html.match(/<link\s[^>]*>/gi) || [];   // the site's own files only: the icons, the font, site.css
-ok(count(html, MOD_OPEN) === 1 && count(html, "<script") === 4 && !/<script[^>]*\ssrc=/.test(html) &&
+ok(count(html, MOD_OPEN) === 1 && count(html, "<script") === 3 && !/<script[^>]*\ssrc=/.test(html) &&
    links.every((l) => /href="(?:[a-z0-9-]+\/)?[a-zA-Z0-9.-]+"/.test(l) && !/:\/\//.test(l)) && html.includes('<link rel="stylesheet" href="site.css">'),
-  "page: the module script, the Support script, the page script and the .js flag; links only to this site (site.css, the icons, the font)");
+  "page: the module script, the page script and the .js flag; links only to this site (site.css, the icons, the font)");
 const imports = [...modSrc.matchAll(/^import \{([^}]*)\} from "([^"]+)";$/gm)].map((m) => ({ names: m[1].split(",").map((s) => s.trim()).filter(Boolean), from: m[2] }));
 ok(imports.map((i) => i.from).join() === "./fm1pkg.js,./fm1ota.js,./fm1backup.js" && count(modSrc, "import ") === 3,
   "page: imports ./fm1pkg.js, ./fm1ota.js, ./fm1backup.js (the same folder, relative)");
@@ -104,13 +104,13 @@ const missingExports = imports.flatMap(({ names, from }) => {
   return names.filter((n) => !new RegExp(`^export (?:async )?(?:function|const|class|let) ${n}\\b`, "m").test(src)).map((n) => `${from}:${n}`);
 });
 ok(!missingExports.length, `page: every imported name is exported by its module${missingExports.length ? " (missing " + missingExports + ")" : ""}`);
-ok(/<title>CoralFlower[^<]*FM-1<\/title>/.test(html) && /<html lang="en">/.test(html) && count(html, "<h1") === 1, "page: title, lang, one h1");
+ok(/<title>Coral(Flower|Tulip)[^<]*FM-1<\/title>/.test(html) && /<html lang="en">/.test(html) && count(html, "<h1") === 1, "page: title, lang, one h1");
 for (const [f, at] of [["fonts/DepartureMono.woff", "Departure Mono"], ["fonts/InterTight-400.woff", "Inter Tight"], ["fonts/InterTight-600.woff", "Inter Tight"]])
   ok(existsSync(join(HERE, f)) && css.includes(`url("${f}")`) && css.includes(`font-family: "${at}"`), `site.css: the font ${f}, from this site`);
-ok(html.includes('class="brand"') && html.includes('<span class="brand-a">Coral</span><span class="brand-b">Flower</span>') &&
+ok(html.includes('class="brand"') && html.includes('<span class="brand-a">Coral</span><span class="brand-b">Tulip</span>') &&
    ["#features", "#garden", "#safety", "#faq", "play/"].every((h) => html.includes(`<a href="${h}">`)) &&
    ["../#features", "../#garden", "../#safety", "../#faq"].every((h) => emu.includes(`<a href="${h}">`)) && emu.includes('<a href="./" aria-current="page">Play</a>'),
-   "page: the CoralFlower name and the same five links on both pages (four sections, Play)");
+   "page: the CoralTulip name and the same five links on both pages (four sections, Play)");
 for (const [name, h] of [["web/index.html", html], ["tools/emu/web/index.html", emu]]) {
   const markup = h.replace(/<script[\s\S]*?<\/script>/g, "");
   const raw = (markup.match(/(?<!&)#[0-9a-fA-F]{3,8}\b/g) || []).filter((c) => !/^#110A02$/i.test(c));   // (theme-color: the bg token's value)
@@ -122,10 +122,6 @@ for (const [name, h] of [["web/index.html", html], ["tools/emu/web/index.html", 
   const cut = (s, a, b) => { const i = s.indexOf(a); return i < 0 ? null : s.slice(i, s.indexOf(b, i) + b.length); };
   const parts = [
     ["the colour ramp", (s) => cut(s, '<div class="ramp"', "</div>")],
-    ["the Support button", (s) => s.split("\n").find((l) => l.includes('id="supportBtn"')).trim().replace(/"\.\.\//g, '"')],
-    ["the Support card", (s) => cut(s, '<section class="supportcard"', "</section>")],
-    ["the dialog", (s) => cut(s, '<dialog id="donate"', "</dialog>")],
-    ["the Support script with WALLETS", (s) => cut(s, "<script>\n/* Support:", "</script>")],
   ];
   for (const [what, f] of parts) { const a = f(emu); ok(a && a.length > 40 && html.includes(a), `page: ${what}, the same as on the emulator page`); }
 }
@@ -657,18 +653,18 @@ async function readyPage(dev, opts = {}) {
   ok(!p.$.versions.hidden && p.$["rel-none"].hidden && !p.$["rel-some"].hidden && count(chips, 'class="chip"') === 2 && chips.includes('data-ver="0.2" aria-pressed="true"') &&
      chips.includes("Newest") && chips.includes('data-ver="0.1" aria-pressed="false"') && !chips.includes('data-ver="0.0"'),
      "releases: two chips (the entry without a SHA-256 left out), the newest chosen");
-  ok(p.$.pkg.textContent === en.pkgRelOk.replace("{version}", "0.2") && p.$.pkg.className === "pkg ok" && !p.$.go.disabled && p.$.go.textContent === "Install on your FM-1" && p.$.ver.textContent.startsWith("CoralFlower 0.2") &&
-     p.fetched.includes("firmware/coralflower-0.2.fwsc"), "releases: the newest fetched from firmware/, sha256 and package checked, Install CoralFlower 0.2");
+  ok(p.$.pkg.textContent === en.pkgRelOk.replace("{version}", "0.2") && p.$.pkg.className === "pkg ok" && !p.$.go.disabled && p.$.go.textContent === "Install on your FM-1" && p.$.ver.textContent.startsWith("CoralTulip 0.2") &&
+     p.fetched.includes("firmware/coralflower-0.2.fwsc"), "releases: the newest fetched from firmware/, sha256 and package checked, Install CoralTulip 0.2");
   ok(p.$.notes.innerHTML.includes("Coral growth follows the chord.") && p.$.notes.innerHTML.includes('href="firmware/coralflower-0.2.fwsc" download') &&
      p.$.notes.innerHTML.includes("2 November 2026"), "releases: the chosen version's notes, date and download link");
   await p.$.versions.fire("click", { target: { closest: () => ({ dataset: { ver: "0.1" }, disabled: false }) } });
-  ok(p.$.ver.textContent.startsWith("CoralFlower 0.1") && p.$.versions.innerHTML.includes('data-ver="0.1" aria-pressed="true"') && p.$.pkg.className === "pkg ok",
+  ok(p.$.ver.textContent.startsWith("CoralTulip 0.1") && p.$.versions.innerHTML.includes('data-ver="0.1" aria-pressed="true"') && p.$.pkg.className === "pkg ok",
     "releases: an older chip chosen -> its own package, checked");
   await choose(p, "candidate.fwsc", good);
   ok(p.$.ver.textContent === "candidate.fwsc" && !p.$.versions.innerHTML.includes('aria-pressed="true"'), "releases: a file chosen instead -> no chip pressed, Install names the file");
   await p.$.versions.fire("click", { target: { closest: () => ({ dataset: { ver: "0.2" }, disabled: false }) } });
   await p.$.go.fire("click");
-  ok(dev.identity === "FM-1_930" && dev.bad === 0 && p.$.status.textContent === en.done && /install: CoralFlower 0\.2 \(coralflower-0\.2\.fwsc\)/.test(p.$.log.textContent),
+  ok(dev.identity === "FM-1_930" && dev.bad === 0 && p.$.status.textContent === en.done && /install: CoralTulip 0\.2 \(coralflower-0\.2\.fwsc\)/.test(p.$.log.textContent),
     "releases: back to 0.2, installed from the site's package");
   p = runPage({ navigator: midiOf(new FakeFM1(image)), fetch: site("0".repeat(64)) });
   await p.ready;
@@ -686,7 +682,7 @@ async function readyPage(dev, opts = {}) {
   const list = { releases: [{ version: "0.2", sha256: "a".repeat(64), date: "2026-10-15" }] };
   const p = runPage({ navigator: {}, fetch: async (url) => (url === "firmware/releases.json" ? { ok: true, status: 200, json: async () => list } : notFound()) });
   await p.ready;
-  ok(p.fetched.join() === "firmware/releases.json" && p.$.ver.textContent.startsWith("CoralFlower 0.2") && p.$.go.disabled && p.$.status.textContent === en.nomidi,
+  ok(p.fetched.join() === "firmware/releases.json" && p.$.ver.textContent.startsWith("CoralTulip 0.2") && p.$.go.disabled && p.$.status.textContent === en.nomidi,
     "no Web MIDI: the newest version named, its package not downloaded, Install off");
 }
 

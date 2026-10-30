@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-only
-# Publish the GitHub Pages site: https://ficusficusov.github.io/CoralFlower/ (put together by tools/make_site.sh)
-#   /           what CoralFlower is, and its installer (web/index.html, web/site.css, web/fonts, web/fm1*.js)
+# Publish the GitHub Pages site: https://mrtakfly.github.io/CoralTulip/ (put together by tools/make_site.sh)
+#   /           what CoralTulip is, and its installer (web/index.html, web/site.css, web/fonts, web/fm1*.js)
 #   /play/      the browser emulator (tools/emu/web, built with Emscripten)
 #   /install/   the old installer address, forwarding to /#install
 #   /firmware/  the packages web/releases.json lists, each downloaded from its release and checked against its
@@ -80,10 +80,9 @@ jobs:
           set -euo pipefail
           mkdir -p build/site/firmware
           if [ -f web/releases.json ]; then cp web/releases.json build/site/firmware/; else echo '{"releases": []}' > build/site/firmware/releases.json; fi
-          python3 -c 'import json; [print(r["version"], r["tag"], r["sha256"]) for r in json.load(open("build/site/firmware/releases.json"))["releases"]]' > build/list.txt
+          python3 -c 'import json; [print(r["version"], r["tag"], r["sha256"], r.get("pkg", f"coraltulip-{r[\"version\"]}.fwsc")) for r in json.load(open("build/site/firmware/releases.json"))["releases"]]' > build/list.txt
           : > build/site/firmware/SHA256SUMS
-          while read -r v tag sha; do
-            pkg="coralflower-$v.fwsc"
+          while read -r v tag sha pkg; do
             gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$pkg" --dir build/site/firmware --clobber
             echo "$sha  build/site/firmware/$pkg" | sha256sum -c -
             echo "$sha  $pkg" >> build/site/firmware/SHA256SUMS
