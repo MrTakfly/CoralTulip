@@ -11,30 +11,30 @@
 
 /* ------------------------------------------------------------------------------------------- 1 primitives --- */
 :root {
-  --c-night-950: #0B0703;
-  --c-night-900: #110A02;
-  --c-night-850: #1A120B;
-  --c-night-800: #271B12;
-  --c-night-700: #3A2B22;
-  --c-ash-600: #7A6C5E;
-  --c-ash-500: #5E5048;
-  --c-ash-300: #A89A88;
-  --c-cream-100: #F1ECE0;
-  --c-cream-200: #E6DED0;
-  --c-cream-300: #D8CEBD;
-  --c-cream-400: #B5A690;
-  --c-rose-500: #E86879;
-  --c-rose-800: #A8334C;
-  --c-rose-950: #3B1810;
-  --c-fire-400: #F9C62A;
-  --c-peach-300: #F6BA7A;
-  --c-orange-500: #F1750D;
-  --c-plum-700: #962179;
-  --c-sky-500: #0D97D5;
-  --c-sea-400: #48E6D9;
-  --c-sea-800: #0B6E68;
-  --c-green-500: #22B572;
-  --c-lime-400: #D6E34C;
+  --c-night-950: #05020D;
+  --c-night-900: #090416;
+  --c-night-850: #140A28;
+  --c-night-800: #221240;
+  --c-night-700: #3A2066;
+  --c-ash-600: #7A62A8;
+  --c-ash-500: #5E488A;
+  --c-ash-300: #B8A4E0;
+  --c-cream-100: #F6F2FF;
+  --c-cream-200: #EBE2FF;
+  --c-cream-300: #D8C8FA;
+  --c-cream-400: #B49CE0;
+  --c-rose-500: #F828B8;
+  --c-rose-800: #B81278;
+  --c-rose-950: #3E0830;
+  --c-fire-400: #FFF05A;
+  --c-peach-300: #FFCA7A;
+  --c-orange-500: #FF7B1A;
+  --c-plum-700: #9B18A8;
+  --c-sky-500: #12A8FF;
+  --c-sea-400: #5CEEFF;
+  --c-sea-800: #0E6898;
+  --c-green-500: #14D4B4;
+  --c-lime-400: #72FFE0;
 }
 
 /* ------------------------------------------------------------------- 2 semantics: the dark default scope --- */

@@ -1,10 +1,10 @@
 # CoralTulip
 
-**Your M-VAVE FM-1, made for chords.** CoralTulip is custom chord-synth firmware for the M-VAVE FM-1, forked from [CoralFlower](https://github.com/FicusFicusov/CoralFlower). Press a chord key, and every note you play becomes a whole chord, with a bass underneath. While you play, a pixel flower grows from your chords.
+**Your M-VAVE FM-1, made for chords.** CoralTulip is custom chord-synth firmware for the M-VAVE FM-1, forked from [CoralFlower](https://github.com/FicusFicusov/CoralFlower). Press a chord key, and every note you play becomes a whole chord, with a bass underneath. While you play, a live 80s Synthwave visualizer reacts to your chords, notes, and arpeggiator.
 
 CoralTulip is inspired by the Telepathic Instruments Orchid. Its controls are redesigned for the FM-1's keys and buttons, because every instrument is played differently.
 
-<p align="center"><img src="docs/images/grow.gif" width="480" alt="A pink pixel flower growing and changing as chords are played"></p>
+<p align="center"><img src="docs/images/splash.png" width="320" alt="CoralTulip 80s Synthwave Outrun sunset splash screen"></p>
 
 <p align="center">
   <a href="https://mrtakfly.github.io/CoralTulip/play/"><b>Play it in your browser</b></a> ·
@@ -45,14 +45,14 @@ Not sure yet? The [browser emulator](https://mrtakfly.github.io/CoralTulip/play/
 
 <table>
   <tr>
-    <td><img src="docs/images/home.png" width="260" alt="HOME: the chord name above a pink flower"></td>
-    <td><img src="docs/images/coral.png" width="260" alt="The Side layout: a pink coral"></td>
-    <td><img src="docs/images/chord.png" width="260" alt="CHORD: a chord button's notes on a piano"></td>
+    <td><img src="docs/images/home.png" width="260" alt="HOME Top layout: Outrun sunset sun and 3D wireframe mountain peak"></td>
+    <td><img src="docs/images/coral.png" width="260" alt="HOME Side layout: rotating 3D synth crystal and neon cyber skyline"></td>
+    <td><img src="docs/images/chord.png" width="260" alt="CHORD: O1 (+1 octave) modifier assigned to a chord key"></td>
   </tr>
   <tr>
-    <td><img src="docs/images/fm-voice.png" width="260" alt="The FM editor: the algorithm's operators"></td>
-    <td><img src="docs/images/arp.png" width="260" alt="ARPEGGIO: the pattern as a little piano roll"></td>
-    <td><img src="docs/images/take.png" width="260" alt="A take being recorded into a new pattern's Chords track"></td>
+    <td><img src="docs/images/fm-voice.png" width="260" alt="SOUND: LFO 1 modulation editor"></td>
+    <td><img src="docs/images/rhythm.png" width="260" alt="RHYTHM MACHINE: Lo-fi groove over the Outrun horizon"></td>
+    <td><img src="docs/images/arp.png" width="260" alt="HOME: neon light-cycle pulse racing down a perspective grid lane"></td>
   </tr>
 </table>
 

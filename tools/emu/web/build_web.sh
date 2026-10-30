@@ -28,15 +28,14 @@ for h in ui_fonts.h ui_icons.h ui_keycaps.h ui_palettes.h felucca_tables.h feluc
 done
 if [ -n "${CR_VERSION:-}" ]; then
     case "$CR_VERSION" in
-        CoralFlower*) VER=$CR_VERSION ;;
-        *) VER="CoralFlower $(printf %s "$CR_VERSION" | tr A-Z a-z)" ;;
+        CoralTulip*|CoralFlower*) VER=$CR_VERSION ;;
+        *) VER="CoralTulip $(printf %s "$CR_VERSION" | tr A-Z a-z)" ;;
     esac
 else
-    REL=$(sed -n 's/^ *"version": *"\([^"]*\)".*/\1/p' web/releases.json 2>/dev/null | head -1)
-    if [ -n "$REL" ]; then
-        VER="CoralFlower $REL"
-    else
-        VER=$(sed -n 's/^#define FELUCCA_VERSION "\(.*\)"/\1/p' firmware/src/coralflower.c | head -1)
+    VER=$(sed -n 's/^#define FELUCCA_VERSION "\(.*\)"/\1/p' firmware/src/coralflower.c | head -1)
+    if [ -z "$VER" ]; then
+        REL=$(sed -n 's/^ *"version": *"\([^"]*\)".*/\1/p' web/releases.json 2>/dev/null | head -1)
+        VER="CoralTulip ${REL:-dev}"
     fi
 fi
 OUT=build/emu-web

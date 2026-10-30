@@ -16,12 +16,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CoralTulip: chord firmware for the M-VAVE FM-1</title>
-<meta name="description" content="CoralTulip makes the M-VAVE FM-1 an instrument for chords, and a pixel flower grows while you play. It’s free and open source, and it installs from your browser in about a minute.">
-<meta name="theme-color" content="#110A02">
-<meta property="og:title" content="CoralTulip: chord firmware for the M-VAVE FM-1">
-<meta property="og:description" content="Your M-VAVE FM-1, made for chords. A pixel flower grows while you play. Free and open source.">
-<meta property="og:image" content="images/home.png">
+<title>CoralTulip: 80s synthwave chord firmware for the M-VAVE FM-1</title>
+<meta name="description" content="CoralTulip makes the M-VAVE FM-1 an instrument for chords with an 80s synthwave visualizer. Free and open source, installs from your browser in about a minute.">
+<meta name="theme-color" content="#070312">
+<meta property="og:title" content="CoralTulip: 80s synthwave chord firmware for the M-VAVE FM-1">
+<meta property="og:description" content="Your M-VAVE FM-1, made for chords with an 80s synthwave visualizer. Free and open source.">
+<meta property="og:image" content="images/splash.png">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -36,7 +36,7 @@
     <a class="brand" href="./" aria-label="CoralTulip, home"><img src="favicon.svg" width="28" height="28" alt=""><span><span class="brand-a">Coral</span><span class="brand-b">Tulip</span></span></a>
     <nav class="site-nav" aria-label="Sections">
       <a href="#features">Features</a>
-      <a href="#garden">Garden</a>
+      <a href="#garden">Visualizer</a>
       <a href="#safety">Safety</a>
       <a href="#faq">FAQ</a>
       <a href="play/">Play</a>
@@ -80,7 +80,7 @@
       </div>
       <div class="hero__visual">
         <div class="device">
-          <div class="device__bezel"><img src="images/grow.gif" width="480" height="280" alt="A pink pixel flower grows on the FM-1's screen as chords are played" fetchpriority="high"></div>
+          <div class="device__bezel"><img src="images/splash.png" width="480" height="480" alt="CoralTulip 80s synthwave Outrun sunset splash screen on the FM-1" fetchpriority="high"></div>
         </div>
       </div>
     </div>
@@ -109,35 +109,35 @@
       <!-- the newest feature: a stage of its own on the cream, its screen playing, one action -->
       <article class="feature-new scope-stage" aria-labelledby="new-title">
         <div class="feature-new__text">
-          <p class="feature-new__tag">New in 0.6.2</p>
-          <h3 class="feature-new__title" id="new-title">Octave modifier keys &amp; Rhythm machine</h3>
-          <p class="feature-new__lead">Assign O1 (+1), o1 (&minus;1), o2 (&minus;2) or O2 (+2) octave modifiers to any chord key in SEL, and jam over 23 ready-made drum rhythms from Pop to Breakcore.</p>
+          <p class="feature-new__tag">New in 0.7.0</p>
+          <h3 class="feature-new__title" id="new-title">80s Synthwave GUI, Octave modifiers &amp; Rhythm machine</h3>
+          <p class="feature-new__lead">Play over an audio-reactive Outrun sunset or 3D wireframe synth crystal, assign O1 (+1), o1 (&minus;1), o2 (&minus;2) or O2 (+2) octave modifiers to any chord key in SEL, and jam over 23 ready-made drum rhythms.</p>
           <a class="btn btn--primary feature-new__go" href="play/"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1h2v1h2v1h2v1h2v4h-2v1h-2v1h-2v1h-2z"/></svg>Try it in your browser</a>
         </div>
         <div class="device feature-new__visual">
-          <div class="device__bezel"><img src="images/rhythm.gif" width="480" height="280" alt="The rhythm machine playing Pop: its kick, snare, clap and hat in rows of hits, a cursor running over them" loading="lazy"></div>
+          <div class="device__bezel"><img src="images/rhythm.png" width="480" height="480" alt="The rhythm machine playing Lo-fi over the Outrun synthwave horizon" loading="lazy"></div>
         </div>
       </article>
       <div class="grid grid--4">
         <article class="card card--feature">
-          <div class="card__media"><img src="images/scale.png" width="480" height="480" alt="HOME set to A minor pentatonic: the lower keys show only its notes, C D E G A" loading="lazy"></div>
-          <h3 class="card__title">27 scales</h3>
-          <p class="card__text">Choose a scale and its starting note. The lower keys then play only the notes of that scale.</p>
+          <div class="card__media"><img src="images/scale.png" width="480" height="480" alt="HOME set to C diminished whole-half scale with a 3D wireframe synth crystal and expanding neon rings" loading="lazy"></div>
+          <h3 class="card__title">27 scales &amp; ripples</h3>
+          <p class="card__text">Choose a scale and its starting note. The lower keys play only the notes of that scale while neon shockwaves ripple across the sky.</p>
         </article>
         <article class="card card--feature">
-          <div class="card__media"><img src="images/arp.png" width="480" height="480" alt="The arpeggiator's pattern as a little piano roll" loading="lazy"></div>
-          <h3 class="card__title">Arpeggiator and strum</h3>
-          <p class="card__text">Nine patterns, including a strum up and down. They follow the FM-1’s tempo or an external MIDI clock.</p>
+          <div class="card__media"><img src="images/chord.png" width="480" height="480" alt="The CHORD editor showing an O1 (+1 octave) modifier assigned to a chord key" loading="lazy"></div>
+          <h3 class="card__title">Octave &amp; chord keys</h3>
+          <p class="card__text">Customize every chord button with triads, 7ths, 9ths, inversions, slash bass notes, or assignable O1/o1/o2/O2 octave modifiers.</p>
         </article>
         <article class="card card--feature">
-          <div class="card__media"><img src="images/take.png" width="480" height="480" alt="A take being recorded into a new pattern’s Chords track" loading="lazy"></div>
-          <h3 class="card__title">Record a take</h3>
-          <p class="card__text">Press REC and play. After a one-bar count-in, your chords are written into the sequencer and play in a loop. From there, you can add drums and a melody in a few clicks.</p>
+          <div class="card__media"><img src="images/take.png" width="480" height="480" alt="The Metronome screen choosing between the 4-track Sequencer and the Rhythm Machine" loading="lazy"></div>
+          <h3 class="card__title">Sequencer &amp; drums</h3>
+          <p class="card__text">Press REC to record chords into the 4-track pattern sequencer, or open the Rhythm Machine to jam over 23 built-in drum grooves.</p>
         </article>
         <article class="card card--feature">
-          <div class="card__media"><img src="images/fm-voice.png" width="480" height="480" alt="The FM editor: the algorithm's operators" loading="lazy"></div>
-          <h3 class="card__title">About 60 sounds</h3>
-          <p class="card__text">Pads, keys, strings and basses from two synth engines. A bass part plays under your chords.</p>
+          <div class="card__media"><img src="images/fm-voice.png" width="480" height="480" alt="The SOUND editor showing LFO 1 waveform modulation on a VA patch" loading="lazy"></div>
+          <h3 class="card__title">6-op FM &amp; VA synth</h3>
+          <p class="card__text">Pads, keys, leads and basses from 6-operator DX7 FM and Virtual Analog engines, with live graphical envelope, filter and LFO editors.</p>
         </article>
       </div>
     </div>
@@ -147,14 +147,16 @@
   <section class="section scope-stage garden" id="garden" aria-labelledby="garden-title">
     <div class="container garden__grid">
       <div class="section-head garden__head">
-        <p class="eyebrow"><span class="ramp ramp--dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>The garden</p>
-        <h2 class="display-2" id="garden-title">A flower grows from your chords</h2>
-        <p class="lead">While you play, a flower grows on the FM-1 screen. Each note of the chord adds a part: a flower, a bud, a cluster of berries. In the Side key layout, a coral grows instead.</p>
-        <p class="caption">The plant’s structure follows PlantStudio, a program that models real plants.</p>
+        <p class="eyebrow"><span class="ramp ramp--dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>Synthwave visualizer</p>
+        <h2 class="display-2" id="garden-title">An 80s neon horizon driven by your chords</h2>
+        <p class="lead">While you play, a 3D perspective neon highway scrolls beneath your chords. Every pitch class owns a lane on the grid and a peak on the horizon — firing light-cycle pulses down the highway and laser sparks into the sky on every note.</p>
+        <p class="caption">Top layout renders an Outrun sunset with 3D wireframe mountains; Side layout renders a rotating 3D wireframe crystal over a cyberpunk city skyline.</p>
       </div>
       <div class="garden__screens">
-        <figure class="screen"><img src="images/home.png" width="480" height="480" alt="The Top layout: the chord's name above a pink flower" loading="lazy"><figcaption>Top layout: a flower</figcaption></figure>
-        <figure class="screen"><img src="images/coral.png" width="480" height="480" alt="The Side layout: a pink coral" loading="lazy"><figcaption>Side layout: a coral</figcaption></figure>
+        <figure class="screen"><img src="images/home.png" width="480" height="480" alt="Top layout: Outrun sunset sun and a glowing 3D wireframe mountain peak" loading="lazy"><figcaption>Top layout: Outrun sun &amp; wireframe peaks</figcaption></figure>
+        <figure class="screen"><img src="images/coral.png" width="480" height="480" alt="Side layout: rotating 3D synth crystal and neon cyber skyline" loading="lazy"><figcaption>Side layout: 3D crystal &amp; cyber skyline</figcaption></figure>
+        <figure class="screen"><img src="images/top-idle.png" width="480" height="480" alt="Top Lock mode showing the Outrun horizon and neon perspective grid" loading="lazy"><figcaption>Outrun sunset horizon</figcaption></figure>
+        <figure class="screen"><img src="images/arp.png" width="480" height="480" alt="A neon light-cycle pulse racing down a perspective grid lane" loading="lazy"><figcaption>Perspective grid note pulses</figcaption></figure>
       </div>
     </div>
   </section>
