@@ -144,6 +144,22 @@ int main(void)
         f.add = CF_A_9;
         cf_form_label(&f, l);
         CHECK(!strcmp(l, "9"), "label 9 alone (got %s)", l);
+        f.type = CF_T_O1;
+        f.add = CF_A_6;
+        cf_form_label(&f, l);
+        CHECK(!strcmp(l, "O1"), "label O1 ignores add (got %s)", l);
+        f.type = CF_T_o1;
+        cf_form_label(&f, l);
+        CHECK(!strcmp(l, "o1"), "label o1 (got %s)", l);
+        f.type = CF_T_o2;
+        cf_form_label(&f, l);
+        CHECK(!strcmp(l, "o2"), "label o2 (got %s)", l);
+        f.type = CF_T_O2;
+        cf_form_label(&f, l);
+        CHECK(!strcmp(l, "O2"), "label O2 (got %s)", l);
+        CHECK(cf_type_oct(CF_T_O1) == 1 && cf_type_oct(CF_T_o1) == -1 &&
+              cf_type_oct(CF_T_o2) == -2 && cf_type_oct(CF_T_O2) == 2 &&
+              cf_type_oct(CF_T_MAJ) == 0, "cf_type_oct values");
     }
 
     /* voicing, auto inversion, bass degree */

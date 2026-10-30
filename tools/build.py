@@ -450,13 +450,13 @@ def main():
         generate()
         print(f"generated {GEN}: {', '.join(sorted(p.name for p in GEN.glob('*.h')))}")
         return 0
-    name = f"{UNIT}.fwsc"
+    name = "coraltulip.fwsc"
     if a.release:                   # the identity stays FM-1_930: only the version string and the names change
         m = re.fullmatch(r"\d+\.\d+(?:\.\d+)?(?:-[A-Za-z0-9.]+)?", a.release)   # the identity never encodes it
         if not m:
             raise SystemExit(f"--release {a.release}: use X.Y, X.Y.Z or X.Y-suffix")
-        VERSION = "CoralFlower " + a.release.lower()     # e.g. CoralFlower 0.1, CoralFlower 0.1-rc1 (the INFO text)
-        name = f"{UNIT}-{a.release}.fwsc"
+        VERSION = "CoralTulip " + a.release.lower()     # e.g. CoralTulip 0.5 (the INFO text)
+        name = f"coraltulip-{a.release}.fwsc"
     fm1pkg_make.SDK = a.sdk
     for rel, sha in SDK_SHA256.items():          # fail early without the SDK
         if hashlib.sha256(fm1pkg_make.sdk_file(rel)).hexdigest() != sha:

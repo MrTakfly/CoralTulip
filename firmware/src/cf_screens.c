@@ -255,6 +255,10 @@ static void draw_sel(void)
     fb_veil(0, Y_VIEW, FB_W, H_VIEW, FL_BG);   /* (the plant faint: the picture leads) */
     if (cf_is_off(&cs.chord, cu.sel_btn)) {
         draw_title("HOLD", "Holds notes after you let go");
+    } else if (cf_type_oct(f->type)) {
+        int o = cf_type_oct(f->type);
+        cf_form_label(f, lab);
+        draw_title(lab, o == 1 ? "+1 octave" : o == -1 ? "-1 octave" : o == -2 ? "-2 octaves" : "+2 octaves");
     } else {                                     /* the button as its key shows it; its chord in words */
         cf_form_label(f, lab);
         str_cpy(b, cf_type_name(f->type), sizeof b);

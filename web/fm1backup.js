@@ -113,7 +113,7 @@ export function bkManifest(a) {
 const bkBase64 = (bytes) => { let s = ""; for (const b of bytes) s += String.fromCharCode(b); return btoa(s); };
 // CoralFlower answers ChoralRoot's protocol on ChoralRoot's objects (its cr_backup.c), RESTART included: its own family
 // for the file name (coralflower-backup-YYYYMMDD.json), the same handling as ChoralRoot everywhere else
-export const backupFamily = (firmware) => (/^coralflower/i.test(firmware || "") ? "coralflower" : /^choralroot/i.test(firmware || "") ? "choralroot" :
+export const backupFamily = (firmware) => (/^coral(flower|tulip)/i.test(firmware || "") ? "coralflower" : /^choralroot/i.test(firmware || "") ? "choralroot" :
   /^felucca/i.test(firmware || "") ? "felucca" : "other");
 export function readBackup(file) {
   if (typeof file === "string") file = JSON.parse(file);

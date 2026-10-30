@@ -209,15 +209,21 @@ static void ui_knob_info(int k, cf_knob_t *o)
         }
         switch (k) {
         case 0: kfmt(o->name, 12, "TYPE"); kfmt(o->val, 14, cf_type_name(f->type)); break;
-        case 1: kfmt(o->name, 12, "ADD"); kfmt(o->val, 14, cf_adds_name(cf_adds_index(f->add))); break;
+        case 1:
+            kfmt(o->name, 12, "ADD");
+            kfmt(o->val, 14, cf_type_oct(f->type) ? "-" : cf_adds_name(cf_adds_index(f->add)));
+            o->dis = cf_type_oct(f->type) != 0;
+            break;
         case 2:
             kfmt(o->name, 12, "INV");             /* (a knob cell holds 8 characters) */
-            kfmt(o->val, 14, f->inv == CF_INV_AUTO ? "Auto" : f->inv == 0 ? "Root" : f->inv == 1 ? "1st" : f->inv == 2 ? "2nd" : "3rd");
+            kfmt(o->val, 14, cf_type_oct(f->type) ? "-" : f->inv == CF_INV_AUTO ? "Auto" : f->inv == 0 ? "Root" : f->inv == 1 ? "1st" : f->inv == 2 ? "2nd" : "3rd");
+            o->dis = cf_type_oct(f->type) != 0;
             break;
         default: {
             static const char *const DEG[] = {"Root", "2nd tone", "3rd tone", "4th tone", "5th tone", "6th tone"};
             kfmt(o->name, 12, "BASS");
-            kfmt(o->val, 14, DEG[f->bass < 6 ? f->bass : 0]);
+            kfmt(o->val, 14, cf_type_oct(f->type) ? "-" : DEG[f->bass < 6 ? f->bass : 0]);
+            o->dis = cf_type_oct(f->type) != 0;
             break;
         }
         }
@@ -438,6 +444,8 @@ static void ui_knob_turn(int k, int d)
             break;
         if (k == 0)
             f->type = (uint8_t)clampi(f->type + d, 0, CF_NTYPES - 1);
+        else if (cf_type_oct(f->type))
+            break;
         else if (k == 1) {
             int i = cf_adds_index(f->add);
             f->add = CF_ADDS[clampi((i < 0 ? 0 : i) + d, 0, CF_NADDS - 1)];
@@ -1724,7 +1732,8 @@ static void cf_feed_plant(uint32_t dt)
         cu_last_serial = ser;
         if (src == 1u) {
             static const uint8_t QT[CF_NTYPES] = {FL_Q_SINGLE, FL_Q_MAJOR, FL_Q_MINOR, FL_Q_DIM, FL_Q_AUG,
-                                                   FL_Q_SUS2, FL_Q_SUS4, FL_Q_MAJOR};
+                                                   FL_Q_SUS2, FL_Q_SUS4, FL_Q_MAJOR,
+                                                   FL_Q_SINGLE, FL_Q_SINGLE, FL_Q_SINGLE, FL_Q_SINGLE};
             c.n = (uint8_t)(o->n > 8 ? 8 : o->n);
             for (i = 0; i < c.n; i++)
                 c.note[i] = o->note[i];

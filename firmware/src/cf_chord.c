@@ -101,6 +101,25 @@ static uint16_t cfc_off_mask(const cf_chord_cfg_t *cfg)
     return m;
 }
 
+static uint16_t cfc_oct_mask(const cf_chord_cfg_t *cfg)
+{
+    int nb = cfc_is_top(cfg->algo) ? CF_TOP_NBTN : CF_SIDE_NBTN, b;
+    uint16_t m = 0;
+    for (b = 0; b < nb; b++)
+        if (cf_type_oct(cf_button_form(cfg, b)->type) != 0)
+            m |= (uint16_t)(1u << b);
+    return m;
+}
+
+static int cfc_oct_shift(const cf_chord_cfg_t *cfg, uint16_t mask)
+{
+    int nb = cfc_is_top(cfg->algo) ? CF_TOP_NBTN : CF_SIDE_NBTN, b, shift = 0;
+    for (b = 0; b < nb; b++)
+        if ((mask >> b) & 1u)
+            shift += cf_type_oct(cf_button_form(cfg, b)->type);
+    return cfc_clampi(shift, -4, 4);
+}
+
 void cf_chord_defaults(cf_chord_cfg_t *cfg)
 {
     /* the upper keys in their groups of 3 2 3 2 1: M6 M7 M9 | s2 s4 | m6 m7 m9 | M m | Off (the owner's order) */
@@ -154,6 +173,8 @@ cf_form_t cf_merge_forms(const cf_form_t *forms, int n)
             win = i;
     for (i = 0; i < n; i++) {
         int t = forms[i].type;
+        if (cf_type_oct(t))
+            continue;                         /* octave modifiers shift pitch only */
         if (win >= 0 && cfc_is_typed(t) && t != win)
             continue;                         /* incompatible with the winners: left out */
         if (t == CF_T_SUS2)
@@ -207,9 +228,11 @@ void cf_chord_reset(cf_chord_t *c)
 
 static uint16_t cfc_effective(const cf_chord_t *c)
 {
+    uint16_t oct = cfc_oct_mask(&c->cfg);
+    uint16_t chd_held = (uint16_t)(c->held & ~oct);
     if (!cfc_is_lock(c->cfg.algo))
         return c->held;
-    return c->held ? c->gesture : c->locked;
+    return (uint16_t)((chd_held ? c->gesture : c->locked) | (c->held & oct));
 }
 
 static void cfc_sort_u8(uint8_t *a, int n)
@@ -261,17 +284,19 @@ static int cfc_resolve(cf_chord_t *c)
 {
     cf_chord_out_t o = c->out, *old = &c->out;
     const cf_chord_cfg_t *g = &c->cfg;
-    uint16_t eff = cfc_effective(c), use, off;
-    int i, nb = cfc_is_top(g->algo) ? CF_TOP_NBTN : CF_SIDE_NBTN, changed;
+    uint16_t eff = cfc_effective(c), use, off, oct;
+    int i, nb = cfc_is_top(g->algo) ? CF_TOP_NBTN : CF_SIDE_NBTN, changed, shift;
     /* the lights show the buttons; the notes come from `play`, which follows them except while kept (cfc_root takes
      * them) */
     if (!(c->keep && c->nroots && !c->bare && (!c->hold || cfc_any_down(c))))
         c->play = eff;                            /* (HOLD with no key down: a type tapped changes the held chord) */
     use = c->play;
     off = cfc_is_top(g->algo) ? cfc_off_mask(g) : 0u;
-    /* single notes: Off held, or no chord button at all (the owner's rule, 2026-10-15: keys alone play notes, as many
-     * as are held; a chord sounds only while a chord button is down, or latched in Lock) */
-    o.single = (uint8_t)((use & off) != 0 || use == 0);
+    oct = cfc_oct_mask(g);
+    shift = 12 * cfc_oct_shift(g, use);
+    o.oct = (int8_t)(shift / 12);
+    /* single notes: Off held, or no chord button at all (octave modifiers alone still play single notes, shifted) */
+    o.single = (uint8_t)((use & off) != 0 || (use & ~oct) == 0);
     o.buttons = (eff & off) ? eff : cfc_used(c, eff, nb);
     o.sounding = c->nroots > 0;
     o.hold = c->hold;
@@ -281,14 +306,17 @@ static int cfc_resolve(cf_chord_t *c)
         int k = 0, j;
         for (i = 0; i < c->nroots && k < CF_MAX_NOTES; i++) {
             int nt = cf_key_root_note(g, c->root_key[i]);
-            for (j = 0; j < k && o.note[j] != nt; j++)
-                ;
-            if (nt >= 0 && j == k)
-                o.note[k++] = (uint8_t)nt;
+            if (nt >= 0) {
+                nt = cfc_clampi(nt + shift, 0, 127);
+                for (j = 0; j < k && o.note[j] != nt; j++)
+                    ;
+                if (j == k)
+                    o.note[k++] = (uint8_t)nt;
+            }
         }
         cfc_sort_u8(o.note, k);
         o.n = (uint8_t)k;
-        o.root_note = (uint8_t)cf_key_root_note(g, c->root_key[c->nroots - 1]);
+        o.root_note = (uint8_t)cfc_clampi(cf_key_root_note(g, c->root_key[c->nroots - 1]) + shift, 0, 127);
         o.root_pc = (uint8_t)(o.root_note % 12);
         o.mask = 1u;
         o.type = CF_T_NONE;
@@ -312,7 +340,7 @@ static int cfc_resolve(cf_chord_t *c)
         for (i = 0; i < nh; i++)
             held[i] = *cf_button_form(g, order[i]);
         f = cf_merge_forms(held, nh);
-        o.root_note = (uint8_t)cf_key_root_note(g, c->root_key[c->nroots - 1]);
+        o.root_note = (uint8_t)cfc_clampi(cf_key_root_note(g, c->root_key[c->nroots - 1]) + shift, 0, 127);
         o.root_pc = (uint8_t)(o.root_note % 12);
         if (f.type == CF_TYPE_DEFAULT) {
             mask = g->quantize == CF_Q_OFF ? cf_form_mask(&(cf_form_t){CF_T_MAJ, 0, 0, 0})
@@ -376,9 +404,11 @@ void cf_chord_config(cf_chord_t *c, const cf_chord_cfg_t *cfg)
 static void cfc_button(cf_chord_t *c, int btn, int down)
 {
     uint16_t bit = (uint16_t)(1u << btn);
+    uint16_t oct = cfc_oct_mask(&c->cfg);
+    uint16_t chd_held = (uint16_t)(c->held & ~oct);
     if (down) {
-        if (cfc_is_lock(c->cfg.algo)) {
-            if (!c->held) {                   /* a new press: it replaces the latch */
+        if (cfc_is_lock(c->cfg.algo) && !(bit & oct)) {
+            if (!chd_held) {                  /* a new press: it replaces the latch */
                 c->toggle = (uint8_t)(c->locked == bit);
                 c->gesture = bit;
             } else {
@@ -390,7 +420,8 @@ static void cfc_button(cf_chord_t *c, int btn, int down)
         c->stamp[btn] = ++c->clock;
     } else {
         c->held &= (uint16_t)~bit;
-        if (cfc_is_lock(c->cfg.algo) && !c->held) {
+        chd_held = (uint16_t)(c->held & ~oct);
+        if (cfc_is_lock(c->cfg.algo) && !(bit & oct) && !chd_held) {
             c->locked = c->toggle ? 0 : c->gesture;
             c->gesture = 0;
             c->toggle = 0;
@@ -441,7 +472,7 @@ static void cfc_root(cf_chord_t *c, int key, int down)
         c->root_down[c->nroots] = 1;
         c->root_key[c->nroots++] = (uint8_t)key;
         c->play = cfc_effective(c);           /* (a root down: the chord takes the latch as it is now) */
-        c->bare = !c->play;                   /* (no button with it: the buttons pressed now apply at once) */
+        c->bare = !(c->play & ~cfc_oct_mask(&c->cfg)); /* (no chord button with it: buttons pressed now apply at once) */
     }
 }
 

@@ -230,7 +230,7 @@ def classify_firmware(identity, info):
         return "refuse", "unknown", f"an unknown firmware ({identity})"
     if m[3] == "930" and not v:                       # CoralFlower's own identity, no INFO: an early CoralFlower build
         return "allow", "coralflower", CF_EARLY       # (any other 9xx without INFO stays refused below)
-    if re.match(r"coralflower\b", v, re.I):           # an update of CoralFlower
+    if re.match(r"coral(flower|tulip)\b", v, re.I):   # an update of CoralFlower / CoralTulip
         return "allow", "coralflower", v
     if re.match(r"choralroot\b", v, re.I):
         return "allow", "choralroot", v
@@ -334,6 +334,197 @@ def midi_rescan():
     return ctypes.CDLL("/System/Library/Frameworks/CoreMIDI.framework/CoreMIDI").MIDIRestart()
 
 
+def _winmm_rtmidi_shim():
+    """Zero-dependency Windows WinMM drop-in shim for python-rtmidi's MidiIn and MidiOut."""
+    import ctypes
+    from ctypes import wintypes
+
+    winmm = ctypes.windll.winmm
+    CALLBACK_FUNCTION = 0x00030000
+    MIM_DATA = 0x3C3
+    MIM_LONGDATA = 0x3C4
+    MHDR_PREPARED = 0x00000002
+
+    class MIDIOUTCAPSW(ctypes.Structure):
+        _fields_ = [
+            ("wMid", wintypes.WORD), ("wPid", wintypes.WORD), ("vDriverVersion", wintypes.UINT),
+            ("szPname", wintypes.WCHAR * 32), ("wTechnology", wintypes.WORD), ("wVoices", wintypes.WORD),
+            ("wNotes", wintypes.WORD), ("wChannelMask", wintypes.WORD), ("dwSupport", wintypes.DWORD),
+        ]
+
+    class MIDIINCAPSW(ctypes.Structure):
+        _fields_ = [
+            ("wMid", wintypes.WORD), ("wPid", wintypes.WORD), ("vDriverVersion", wintypes.UINT),
+            ("szPname", wintypes.WCHAR * 32), ("dwSupport", wintypes.DWORD),
+        ]
+
+    class MIDIHDR(ctypes.Structure):
+        _pack_ = 1
+        _fields_ = [
+            ("lpData", ctypes.c_void_p), ("dwBufferLength", wintypes.DWORD), ("dwBytesRecorded", wintypes.DWORD),
+            ("dwUser", ctypes.c_size_t), ("dwFlags", wintypes.DWORD), ("lpNext", ctypes.c_void_p),
+            ("reserved", ctypes.c_size_t), ("dwOffset", wintypes.DWORD), ("dwReserved", ctypes.c_size_t * 8),
+        ]
+
+    MIDIINPROC = ctypes.WINFUNCTYPE(
+        None, wintypes.HANDLE, wintypes.UINT, ctypes.c_size_t, ctypes.c_size_t, ctypes.c_size_t
+    )
+
+    class MidiIn:
+        def __init__(self):
+            self.h = wintypes.HANDLE()
+            self.q = queue.SimpleQueue()
+            self.recycle_q = queue.SimpleQueue()
+            self.closing = False
+            self.bufs = []
+            self._sysex_buf = bytearray()
+            self._in_sysex = False
+            self._cb = MIDIINPROC(self._proc)
+
+        def get_ports(self):
+            out = []
+            for i in range(winmm.midiInGetNumDevs()):
+                caps = MIDIINCAPSW()
+                if winmm.midiInGetDevCapsW(i, ctypes.byref(caps), ctypes.sizeof(caps)) == 0:
+                    out.append(caps.szPname)
+            return out
+
+        def ignore_types(self, sysex=True, timing=True, active_sense=True):
+            pass
+
+        def _proc(self, hmi, msg, inst, p1, p2):
+            if self.closing:
+                return
+            if msg == MIM_LONGDATA and p1:
+                hdr = MIDIHDR.from_address(p1)
+                n = hdr.dwBytesRecorded
+                if n > 0 and hdr.lpData:
+                    raw = ctypes.string_at(hdr.lpData, n)
+                    for b in raw:
+                        if b == 0xF0:
+                            self._sysex_buf.clear()
+                            self._sysex_buf.append(0xF0)
+                            self._in_sysex = True
+                        elif self._in_sysex:
+                            self._sysex_buf.append(b)
+                            if b == 0xF7:
+                                self.q.put((list(self._sysex_buf), 0.0))
+                                self._sysex_buf.clear()
+                                self._in_sysex = False
+                if not self.closing:
+                    self.recycle_q.put(int(hdr.dwUser))
+            elif msg == MIM_DATA:
+                b0 = p1 & 0xFF
+                b1 = (p1 >> 8) & 0xFF
+                b2 = (p1 >> 16) & 0xFF
+                if b0 < 0xF0:
+                    hi = b0 & 0xF0
+                    self.q.put(([b0, b1] if hi in (0xC0, 0xD0) else [b0, b1, b2], 0.0))
+
+        def open_port(self, idx):
+            self.closing = False
+            rc = winmm.midiInOpen(ctypes.byref(self.h), idx, self._cb, 0, CALLBACK_FUNCTION)
+            if rc != 0:
+                raise RuntimeError(f"midiInOpen({idx}) failed rc={rc}")
+            for i in range(64):
+                buf = ctypes.create_string_buffer(4096)
+                hdr = MIDIHDR()
+                hdr.lpData = ctypes.cast(buf, ctypes.c_void_p)
+                hdr.dwBufferLength = 4096
+                hdr.dwUser = i
+                winmm.midiInPrepareHeader(self.h, ctypes.byref(hdr), ctypes.sizeof(hdr))
+                winmm.midiInAddBuffer(self.h, ctypes.byref(hdr), ctypes.sizeof(hdr))
+                self.bufs.append((buf, hdr))
+            winmm.midiInStart(self.h)
+
+        def get_message(self):
+            while not self.closing:
+                try:
+                    idx = self.recycle_q.get_nowait()
+                except queue.Empty:
+                    break
+                if self.h and 0 <= idx < len(self.bufs):
+                    _, hdr = self.bufs[idx]
+                    hdr.dwBytesRecorded = 0
+                    winmm.midiInAddBuffer(self.h, ctypes.byref(hdr), ctypes.sizeof(hdr))
+            try:
+                return self.q.get_nowait()
+            except queue.Empty:
+                return None
+
+        def close_port(self):
+            self.closing = True
+            if self.h:
+                winmm.midiInStop(self.h)
+                winmm.midiInReset(self.h)
+                for _, hdr in self.bufs:
+                    if hdr.dwFlags & MHDR_PREPARED:
+                        winmm.midiInUnprepareHeader(self.h, ctypes.byref(hdr), ctypes.sizeof(hdr))
+                self.bufs.clear()
+                winmm.midiInClose(self.h)
+                self.h = wintypes.HANDLE()
+
+        def delete(self):
+            self.close_port()
+
+    class MidiOut:
+        def __init__(self):
+            self.h = wintypes.HANDLE()
+
+        def get_ports(self):
+            out = []
+            for i in range(winmm.midiOutGetNumDevs()):
+                caps = MIDIOUTCAPSW()
+                if winmm.midiOutGetDevCapsW(i, ctypes.byref(caps), ctypes.sizeof(caps)) == 0:
+                    out.append(caps.szPname)
+            return out
+
+        def open_port(self, idx):
+            rc = winmm.midiOutOpen(ctypes.byref(self.h), idx, 0, 0, 0)
+            if rc != 0:
+                raise RuntimeError(f"midiOutOpen({idx}) failed rc={rc}")
+
+        def send_message(self, data):
+            raw = bytes(data)
+            if not raw:
+                return
+            if raw[0] == 0xF0:
+                buf = ctypes.create_string_buffer(raw, len(raw))
+                hdr = MIDIHDR()
+                hdr.lpData = ctypes.cast(buf, ctypes.c_void_p)
+                hdr.dwBufferLength = len(raw)
+                hdr.dwBytesRecorded = len(raw)
+                rc = winmm.midiOutPrepareHeader(self.h, ctypes.byref(hdr), ctypes.sizeof(hdr))
+                if rc != 0:
+                    raise RuntimeError(f"midiOutPrepareHeader failed rc={rc}")
+                try:
+                    rc = winmm.midiOutLongMsg(self.h, ctypes.byref(hdr), ctypes.sizeof(hdr))
+                    if rc != 0:
+                        raise RuntimeError(f"midiOutLongMsg failed rc={rc}")
+                finally:
+                    winmm.midiOutUnprepareHeader(self.h, ctypes.byref(hdr), ctypes.sizeof(hdr))
+            else:
+                msg = raw[0] | ((raw[1] if len(raw) > 1 else 0) << 8) | ((raw[2] if len(raw) > 2 else 0) << 16)
+                winmm.midiOutShortMsg(self.h, msg)
+
+        def close_port(self):
+            if self.h:
+                winmm.midiOutReset(self.h)
+                winmm.midiOutClose(self.h)
+                self.h = wintypes.HANDLE()
+
+        def delete(self):
+            self.close_port()
+
+    class _Shim:
+        pass
+
+    s = _Shim()
+    s.MidiIn = MidiIn
+    s.MidiOut = MidiOut
+    return s
+
+
 def midi_worker(stuck):
     """--midi-worker: the MIDI side of one link, or of the port list (above). Frames (a tag, a 4-byte length, the
     bytes) on stdin and stdout. In: n the port names, d midi_devices(), r midi_rescan(), o [input, output] open
@@ -347,7 +538,7 @@ def midi_worker(stuck):
     try:
         import rtmidi
     except ImportError:
-        rtmidi = None
+        rtmidi = _winmm_rtmidi_shim() if sys.platform == "win32" else None
     rd, wr, null = sys.stdin.buffer, sys.stdout.buffer, open(os.devnull, "w")
     cmds = queue.SimpleQueue()                            # (its put is safe in a signal handler)
     inp = out = names = None
@@ -491,7 +682,18 @@ class Worker:
         # close_fds=False: Python then starts the worker by posix_spawn (macOS, Linux), not by fork: no copy of
         # this process, with its threads' locks and its command line, exists before an exec. The pipes of the other
         # workers are not inherited (Python opens every descriptor close-on-exec).
-        self.p = subprocess.Popen([sys.executable, os.path.abspath(__file__), "--midi-worker", str(DELAY["stuck"])],
+        exe, script = sys.executable, os.path.abspath(__file__)
+        if sys.platform == "linux" and os.path.exists("/proc/version"):
+            try:
+                if "microsoft" in open("/proc/version").read().lower():
+                    import shutil
+                    wpy = shutil.which("python.exe") or "/mnt/c/Python314/python.exe"
+                    if os.path.exists(wpy):
+                        exe = wpy
+                        script = subprocess.check_output(["wslpath", "-w", script], text=True).strip()
+            except Exception:
+                pass
+        self.p = subprocess.Popen([exe, script, "--midi-worker", str(DELAY["stuck"])],
                                   stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=False)
         self.q, self.ans, self.lock, self.dead = queue.Queue(), queue.Queue(), threading.Lock(), False
         Worker.live.append(self)
@@ -1069,9 +1271,9 @@ def object_names(ids):                                 # each name once (the seq
 
 
 def family(firmware):
-    """the backup family (web/fm1backup.js backupFamily): CoralFlower answers ChoralRoot's protocol and objects"""
+    """the backup family (web/fm1backup.js backupFamily): CoralFlower / CoralTulip answers ChoralRoot's protocol and objects"""
     f = (firmware or "").lower()
-    if f.startswith("coralflower"):
+    if f.startswith(("coralflower", "coraltulip")):
         return "coralflower"
     return "choralroot" if f.startswith("choralroot") else "felucca" if f.startswith("felucca") else "other"
 
@@ -1295,8 +1497,10 @@ def restore(bl, f, progress=lambda done, total: None, busy=lambda: None):
             try:
                 bk_put_object(bl, i, b, chunk, busy)
             except BackupError as e:
-                # (31: since 0.6 the rhythm machine's record, which 0.5 refuses; the patterns after it still go back)
-                if (o.get("converted") and e.rc == (2 if e.begun else 1)) or (i == 31 and e.begun and e.rc == 2):
+                # (31: since 0.6 the rhythm machine's record, which 0.5 refuses; 8: older 3816-byte FUN6 bank)
+                if ((o.get("converted") and e.rc == (2 if e.begun else 1)) or
+                        (i == 31 and e.begun and e.rc == 2) or
+                        (i == 8 and not e.begun and e.rc == 1)):
                     skipped.append(i)
                     continue
                 raise

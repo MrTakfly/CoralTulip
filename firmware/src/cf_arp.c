@@ -248,6 +248,8 @@ static int cfa_chord(const cf_chord_out_t *o, int m)
         int k = 0;
         for (i = 0; i < cfc.nroots && k < cfa.n; i++) {
             int nt = cf_key_root_note(&cfc.cfg, cfc.root_key[i]);
+            if (nt >= 0)
+                nt = cfc_clampi(nt + 12 * o->oct, 0, 127);
             for (j = 0; j < cfa.n; j++)
                 if (cfa.note[j] == nt)
                     break;

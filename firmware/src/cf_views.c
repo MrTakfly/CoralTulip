@@ -1184,15 +1184,16 @@ static uint8_t cv_sel_mark(int n)
 static void view_sel(int x0)
 {
     const cf_form_t *f = sel_form();
-    int off = cf_is_off(&cs.chord, cu.sel_btn), tonic = cs.chord.quantize != CF_Q_OFF ? cs.chord.tonic : 0;
+    int off = cf_is_off(&cs.chord, cu.sel_btn), oct = off ? 0 : cf_type_oct(f->type);
+    int tonic = cs.chord.quantize != CF_Q_OFF ? cs.chord.tonic : 0;
     int base = 60 + tonic, lo = 48, wk = 10, xk = x0 + 108 - 21 * wk / 2, i, n, ky = VIEW_Y + 14, bass_pc, stag;
-    uint32_t mask = off ? 1u : cf_form_mask(f);
+    uint32_t mask = (off || oct) ? 1u : cf_form_mask(f);
     uint8_t note[12];
     char a[4];
-    n = off ? 1 : cf_voice(base, mask, f->inv < 0 ? 0 : f->inv, note);
-    if (off)
-        note[0] = (uint8_t)base;
-    bass_pc = off ? -1 : cf_bass_pc(tonic, mask, f->bass);
+    n = (off || oct) ? 1 : cf_voice(base, mask, f->inv < 0 ? 0 : f->inv, note);
+    if (off || oct)
+        note[0] = (uint8_t)clampi(base + 12 * oct, lo, lo + 35);
+    bass_pc = (off || oct) ? -1 : cf_bass_pc(tonic, mask, f->bass);
     cv_sel_n = (uint8_t)n;
     for (i = 0; i < n; i++)
         cv_sel_note[i] = note[i];

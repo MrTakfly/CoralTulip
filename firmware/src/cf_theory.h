@@ -54,11 +54,13 @@ int cf_key_prefers_flats(int tonic, int scale);
 void cf_numeral(int scale, int tonic, int root_pc, char out[8]);
 
 /* ------------------------------------------------------------ chord forms --- */
-enum {                     /* the chord type: what the third and fifth are */
+enum {                     /* the chord type: what the third and fifth are, or an octave modifier */
     CF_T_NONE = 0,         /* the root alone (plus the added degrees): "single degrees" */
     CF_T_MAJ, CF_T_MIN, CF_T_DIM, CF_T_AUG, CF_T_SUS2, CF_T_SUS4, CF_T_POWER,
+    CF_T_O1, CF_T_o1, CF_T_o2, CF_T_O2,
     CF_NTYPES
 };
+int cf_type_oct(int type); /* +1, -1, -2, +2 for CF_T_O1..CF_T_O2, else 0 */
 enum {                     /* the added degrees (cf_form_t.add bits) */
     CF_A_6 = 1u << 0,      /* 9 semitones */
     CF_A_b7 = 1u << 1,     /* 10: a seventh, dominant or minor */

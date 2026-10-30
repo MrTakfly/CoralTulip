@@ -1,9 +1,9 @@
-# CoralFlower
+# CoralTulip (CoralFlower Fork)
 
-**Your M-VAVE FM-1, made for chords.** CoralFlower is free firmware for the FM-1. Press a chord key, and every note
+**Your M-VAVE FM-1, made for chords.** CoralTulip is custom firmware for the FM-1 based on CoralFlower. Press a chord key, and every note
 you play becomes a whole chord, with a bass underneath. While you play, a pixel flower grows from your chords.
 
-CoralFlower is inspired by the Telepathic Instruments Orchid. Its controls are redesigned for the FM-1's keys and
+CoralTulip is inspired by the Telepathic Instruments Orchid. Its controls are redesigned for the FM-1's keys and
 buttons, because every instrument is played differently.
 
 <p align="center"><img src="docs/images/grow.gif" width="480" alt="A pink pixel flower growing and changing as chords are played"></p>
@@ -11,7 +11,8 @@ buttons, because every instrument is played differently.
 <p align="center">
   <a href="https://ficusficusov.github.io/CoralFlower/play/"><b>Play it in your browser</b></a> ·
   <a href="https://ficusficusov.github.io/CoralFlower/"><b>Install it on your FM-1</b></a> ·
-  <a href="https://github.com/FicusFicusov/CoralFlower/releases"><b>Releases</b></a>
+  <a href="https://github.com/MrTakfly/CoralTulip"><b>CoralTulip Repository</b></a> ·
+  <a href="CHANGELOG.md"><b>Changelog (0.6.2)</b></a>
 </p>
 
 Not sure yet? The browser version runs the same firmware with sound. Try it with your mouse or computer keyboard
@@ -24,6 +25,7 @@ before you install anything.
   combine them. The chord stays on until you choose another one. The key marked Off turns chords off, and the keys
   play single notes, several at once. Choose from 27 scales, chromatic included, starting on any note. Chord glide (off by default) slides
   each note into the next chord.
+- **Assignable Octave Modifier Chord Keys (`O1`, `o1`, `o2`, `O2`).** In the `SEL` chord button editor, `TYPE` (Knob 1) lets you assign `+1` (`O1`), `-1` (`o1`), `-2` (`o2`), or `+2` (`O2`) octave modifiers to any chord button. Hold an octave modifier together with a chord button (or over a latched chord in Lock mode) to transpose the chord and bass by ±1 or ±2 octaves, or hold it alone to transpose single notes.
 - **Two layouts, each with a Lock mode.** In the Top layout, the upper row picks the chord type and the lower row the
   root. In the Side layout, a few keys on the left pick the type and the rest play roots. Lock mode keeps the chord
   type you tapped, so you don't have to hold its key. A new FM-1 starts in Top with Lock; without Lock, a chord
@@ -42,6 +44,7 @@ before you install anything.
   [PlantStudio](https://github.com/pdfernhout/PlantStudio), a program that models real plants.
 - **MIDI over USB.** The chords, the bass and the sequencer's Layer and Drums go out on four channels you set. The
   FM-1 follows an external MIDI clock or sends its own.
+- **Standalone USB-MIDI Backup & Restore Studio (`flower_backup_app.py`).** A desktop GUI and CLI librarian for Windows, WSL, macOS, and Linux that backs up, inspects, and restores all 26 flash objects over USB-MIDI without a browser, and comes bundled with the **MGMT - Kids** preset backup (`backups/20261030-194458_MGMT---Kids.json`).
 
 <table>
   <tr>
@@ -56,17 +59,44 @@ before you install anything.
   </tr>
 </table>
 
+## Backup & Restore Studio (`flower_backup_app.py`)
+
+Run the standalone desktop GUI (or double-click `CoralFlower_Backup.bat` on Windows):
+
+```bash
+python flower_backup_app.py
+```
+
+Or use the command-line interface (works natively on Windows, WSL, macOS, and Linux):
+
+```bash
+python flower_backup_app.py --info
+python flower_backup_app.py --backup backups/my_backup.json
+python flower_backup_app.py --restore backups/20261030-194458_MGMT---Kids.json --yes
+python flower_backup_app.py --inspect backups/20261030-194458_MGMT---Kids.json
+```
+
 ## Install
 
-1. Open <https://ficusficusov.github.io/CoralFlower/> in **Chrome or Edge** on a computer. Only these browsers can talk
+### Option 1: Command-Line Installer (Windows, WSL, macOS, Linux)
+
+```bash
+python tools/fm1_install.py --yes build/coraltulip-0.6.2.fwsc
+```
+
+`fm1_install.py` automatically backs up your settings, sounds, and patterns before flashing and restores them onto the updated unit.
+
+### Option 2: Browser Installer
+
+1. Open `web/index.html` (or <https://ficusficusov.github.io/CoralFlower/>) in **Chrome or Edge** on a computer. Only these browsers can talk
    to the FM-1 over USB.
 2. Connect the FM-1 straight to the computer. Don't use a USB hub, and use a cable that carries data, not a
    charge-only one.
-3. Press **Install on your FM-1**. Keep the page open and the cable in for about a minute. The FM-1 restarts as
-   CoralFlower.
+3. Select `build/coraltulip-0.6.2.fwsc` (or press **Install on your FM-1**). Keep the page open and the cable in for about a minute. The FM-1 restarts as
+   CoralTulip.
 
-If the FM-1 runs CoralFlower, ChoralRoot or Felucca, the installer saves your sounds to a file first. The official firmware's sounds can't be backed up. To return to the stock firmware, download FM-1
-V15 from [m-vave.com](https://www.m-vave.com) and install it from the same CoralFlower page. Installing firmware is at
+If the FM-1 runs CoralTulip, CoralFlower, ChoralRoot or Felucca, the installer saves your sounds to a file first. The official firmware's sounds can't be backed up. To return to the stock firmware, download FM-1
+V15 from [m-vave.com](https://www.m-vave.com) and install it from the same page. Installing firmware is at
 your own risk.
 
 ## Build it yourself
@@ -80,20 +110,20 @@ your own risk.
   emulator in `build/site/play/`.
 - **The headless runner.** `sh tools/emu/cf_headless.sh SCRIPT` plays a script of key presses, takes screenshots and
   records audio. The tests use it.
-- **The firmware package.** `./build.sh --release X.Y` needs the toolchain from JieLi, the maker of the FM-1's chip.
-  The toolchain runs on Linux x86-64 only, and `tools/get_toolchain.sh` fetches it. On GitHub, the release workflow
+- **The firmware package.** `./build.sh --release 0.6.2` needs the toolchain from JieLi, the maker of the FM-1's chip.
+  The toolchain runs on Linux x86-64 (including WSL on Windows), and `tools/get_toolchain.sh` fetches it. On GitHub, the release workflow
   (`.github/workflows/release.yml`) builds the package for you.
 
 ## Credits and licence
 
-CoralFlower is a fork of [ChoralRoot FM-1](https://github.com/Quixotic7/ChoralRootFM1) by Quixotic7, which is itself
+CoralTulip is a fork of [CoralFlower](https://github.com/FicusFicusov/CoralFlower), which is a fork of [ChoralRoot FM-1](https://github.com/Quixotic7/ChoralRootFM1) by Quixotic7, which is itself
 a fork of [Felucca](https://github.com/hugelton/Felucca) by Leo Kuroshita (Hügelton Instruments). The FM engine comes
 from [Melodee](https://github.com/keremimo/melodee) by Kerem Kilic, and the screens use
 [Departure Mono](https://departuremono.com), a font by Helena Zhang. Thank you all.
 
-CoralFlower is free software under the GPL-3.0. `LICENSE` and `LICENSING.md` have the details.
+CoralTulip is free software under the GPL-3.0. `LICENSE` and `LICENSING.md` have the details.
 
-M-VAVE and FM-1 are trademarks of their respective owners. Orchid is a product of Telepathic Instruments. CoralFlower
+M-VAVE and FM-1 are trademarks of their respective owners. Orchid is a product of Telepathic Instruments. CoralTulip
 is not affiliated with M-VAVE, Cuvave or Telepathic Instruments.
 
 ## Feedback and support

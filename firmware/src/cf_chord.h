@@ -56,6 +56,7 @@ typedef struct {
     cf_form_t form;             /* the merged form (for SEL and the labels) */
     uint16_t buttons;           /* the effective chord buttons (held or locked) */
     uint8_t hold;               /* HOLD is on (its key lit) */
+    int8_t oct;                 /* octave offset from held O1/o1/o2/O2 buttons */
     uint32_t serial;            /* bumped whenever the chord changes */
 } cf_chord_out_t;
 

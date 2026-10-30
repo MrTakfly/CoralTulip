@@ -216,6 +216,7 @@ static const uint32_t TYPE_MASK[CF_NTYPES] = {
     (1u << 0) | (1u << 2) | (1u << 7),         /* SUS2 */
     (1u << 0) | (1u << 5) | (1u << 7),         /* SUS4 */
     (1u << 0) | (1u << 7),                     /* POWER */
+    1u << 0, 1u << 0, 1u << 0, 1u << 0,        /* O1, o1, o2, O2 */
 };
 static const int8_t ADD_SEMI[12] = {9, 10, 11, 14, 13, 15, 17, 18, 21, 2, 5, 9};
 
@@ -230,7 +231,19 @@ static const char *const ADD_NAMES[CF_NADDS] = {
 };
 static const char *const TYPE_NAMES[CF_NTYPES] = {
     "None", "Major", "Minor", "Diminished", "Augmented", "Sus2", "Sus4", "Power",
+    "O1", "o1", "o2", "O2",
 };
+
+int cf_type_oct(int type)
+{
+    switch (type) {
+    case CF_T_O1: return 1;
+    case CF_T_o1: return -1;
+    case CF_T_o2: return -2;
+    case CF_T_O2: return 2;
+    default: return 0;
+    }
+}
 
 int cf_adds_index(uint16_t add)
 {
@@ -245,8 +258,11 @@ const char *cf_type_name(int type) { return type >= 0 && type < CF_NTYPES ? TYPE
 
 uint32_t cf_form_mask(const cf_form_t *f)
 {
-    uint32_t m = TYPE_MASK[f->type < CF_NTYPES ? f->type : CF_T_MAJ];
+    uint32_t m;
     int i;
+    if (cf_type_oct(f->type))
+        return 1u;
+    m = TYPE_MASK[f->type < CF_NTYPES ? f->type : CF_T_MAJ];
     for (i = 0; i < 12; i++)
         if ((f->add >> i) & 1u)
             m |= 1u << ADD_SEMI[i];
@@ -453,6 +469,12 @@ void cf_form_label(const cf_form_t *f, char out[8])
     case CF_T_POWER:
         k = put(out, k, 8, "5");
         break;
+    case CF_T_O1:
+    case CF_T_o1:
+    case CF_T_o2:
+    case CF_T_O2:
+        put(out, 0, 8, cf_type_name(t));
+        return;
     default: /* NONE: the added degrees are the label, full size */
         if (a & CF_A_7)
             k = put(out, k, 8, "M7");

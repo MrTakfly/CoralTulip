@@ -451,6 +451,65 @@ int main(void)
     NOTES("Quantize Off: the outside F# as it is, F#m7", 66, 69, 73, 76);
     up(CF_KEY_EXT + 66);
 
+    /* octave modifier chord buttons: O1 (+1), o1 (-1), o2 (-2), O2 (+2) */
+    setup(CF_ALG_TOP, CF_Q_BASIC, 0, CF_SC_MAJOR);
+    G.top[3].type = CF_T_O1;                     /* upper key 8 (idx 3) -> O1 (+1 oct) */
+    G.top[4].type = CF_T_o1;                     /* upper key 10 (idx 4) -> o1 (-1 oct) */
+    G.top[5].type = CF_T_o2;                     /* upper key 13 (idx 5) -> o2 (-2 oct) */
+    G.top[6].type = CF_T_O2;                     /* upper key 15 (idx 6) -> O2 (+2 oct) */
+    cf_chord_init(&C, &G);
+    /* Hold M (key 3, idx 1) + O1 (key 8, idx 3), press C (key 7) -> C major +1 octave (72, 76, 79) */
+    down(3);
+    down(8);
+    down(7);
+    CHECK(!C.out.single && C.out.oct == 1, "M + O1: chord mode, oct +1");
+    NOTES("M + O1 + C: C major up 1 octave", 72, 76, 79);
+    up(7);
+    up(8);
+    up(3);
+    /* Hold M (key 3) + o1 (key 10), press C (key 7) -> C major -1 octave (48, 52, 55) */
+    down(3);
+    down(10);
+    down(7);
+    NOTES("M + o1 + C: C major down 1 octave", 48, 52, 55);
+    up(7);
+    up(10);
+    up(3);
+    /* Hold M (key 3) + o2 (key 13), press C (key 7) -> C major -2 octaves (36, 40, 43) */
+    down(3);
+    down(13);
+    down(7);
+    NOTES("M + o2 + C: C major down 2 octaves", 36, 40, 43);
+    up(7);
+    up(13);
+    up(3);
+    /* Hold M (key 3) + O2 (key 15), press C (key 7) -> C major +2 octaves (84, 88, 91) */
+    down(3);
+    down(15);
+    down(7);
+    NOTES("M + O2 + C: C major up 2 octaves", 84, 88, 91);
+    up(7);
+    up(15);
+    up(3);
+    /* Hold O1 alone (key 8), press C (key 7) -> single note C up 1 octave (72) */
+    down(8);
+    down(7);
+    CHECK(C.out.single && C.out.oct == 1, "O1 alone: single note mode, oct +1");
+    NOTES("O1 + C alone: single note C5 (72)", 72);
+    up(7);
+    up(8);
+    /* Top Lock: latch M (key 3), then hold O1 (key 8) and press C (key 7) -> C major +1 octave, release O1 -> C major normal */
+    G.algo = CF_ALG_TOP_LOCK;
+    cf_chord_init(&C, &G);
+    down(3);
+    up(3);
+    down(8);
+    down(7);
+    NOTES("Lock: M latched, O1 held + C: C major up 1 octave", 72, 76, 79);
+    up(8);
+    NOTES("Lock: O1 released while C held: C major returns to normal octave", 60, 64, 67);
+    up(7);
+
     printf("cf_chord: %d checks, %d failures\n", checks, fails);
     return fails != 0;
 }

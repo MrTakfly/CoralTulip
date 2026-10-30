@@ -7,7 +7,7 @@
 
 static void cf_splash_frame(uint32_t t)
 {
-    static const char *const NAME = "CoralFlower";
+    static const char *const NAME = "CoralTulip";
     int i, n = (int)str_len(NAME), shown, x;
     flora_render(&flo, &fl_cv);
     fb_fill(FL_BG);
